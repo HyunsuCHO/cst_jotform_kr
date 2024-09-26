@@ -30,8 +30,6 @@ if (window.JotForm && JotForm.accessible) $('input_42').setAttribute('tabindex',
    setTimeout(function() {
 JotForm.paymentExtrasOnTheFly([null,{"name":"heading","qid":"1","text":"\bConnect SeoulTech","type":"control_head"},{"name":"submit2","qid":"2","text":"제출","type":"control_button"},null,{"name":"input4","qid":"4","text":"내 관심사와 맞는 설곽 친구 찾기","type":"control_head"},null,null,null,null,null,null,null,null,null,{"description":"","name":"input14","qid":"14","subLabel":"","text":"음악 - 내가 가장 좋아하는 아티스트는? ex) 빈지노, 이세계아이돌, 실리카겔","type":"control_textbox"},{"description":"","name":"input15","qid":"15","text":"커리어 - 향후 원하는 커리어의 형태가 있다면 알려주세요!","type":"control_radio"},null,{"description":"","name":"input17","qid":"17","text":"해외축구 - 훔바훔바, 손빠, 맹구.. 등에 혹시 긁히시는지? 해외축구 응원팀이 있다면 알려주세요","type":"control_checkbox"},{"description":"","name":"input18","qid":"18","text":"운동 - 건강하려고 운동하는게 아니라 운동하려고 건강한 당신! 어떤 운동을 즐겨하나요?","type":"control_checkbox"},{"description":"","name":"input19","qid":"19","text":"게임 - 혹시 게임 하시나요? 그렇다면 어떤 게임을 하시나요?","type":"control_checkbox"},{"description":"","name":"input20","qid":"20","text":"취미 -  평소에 즐기는 취미는 무엇인가요?","type":"control_checkbox"},{"description":"","name":"input21","qid":"21","text":"음악 - 평소 즐겨듣는 음악 장르는?","type":"control_checkbox"},null,{"description":"","name":"input23","qid":"23","text":"패션 - 평소 즐겨입는 옷 스타일은 무엇인가요?","type":"control_checkbox"},null,{"description":"","name":"input25","qid":"25","subLabel":"","text":"패션 - 내 패션 추구미는 좀 더 디테일해! 참고할 수 있는 사람 혹은 인스타계정 알려주세요!","type":"control_textbox"},{"description":"","name":"input26","qid":"26","text":"라이프스타일 - 본인의 라이프스타일을 알려주세요!","type":"control_checkbox"},{"description":"","name":"input27","qid":"27","subLabel":"","text":"라이프스타일 - 나만의 라이프스타일은 좀 특이하지~라면 알려주세요!","type":"control_textbox"},null,null,null,{"description":"","name":"input31","qid":"31","text":"게임 - LOL -  문항에서 a를 골랐다면  즐겨가는 라인은 어딘인가요?","type":"control_checkbox"},null,{"description":"","name":"input33","qid":"33","subLabel":"","text":"게임 - LOL - 자주 쓰는 챔은 누구인가요?","type":"control_textbox"},{"description":"","name":"input34","qid":"34","text":"게임 - 배그 게임문항에서 배그를 골랐다면 선호하는 총기종류는 무엇인가요?","type":"control_checkbox"},null,{"description":"","name":"input36","qid":"36","text":"게임 - 피온 - 게임문항에서 피온을 골랐다면 선호하는 포메이션은 무엇인가요?","type":"control_checkbox"},{"description":"","name":"input37","qid":"37","text":"게임 - FPS - 게임문항에서 FPS를 골랐다면 플레이하는 게임은 무엇인가요?","type":"control_checkbox"},{"description":"","name":"input38","qid":"38","text":"내 추구미와 관련된 분야를 골라주세요(여러개를 고르셔도 됩니다.)","type":"control_checkbox"},null,{"description":"","name":"input40","qid":"40","text":"성별","type":"control_radio"},null,{"description":"","name":"Nft","qid":"42","subLabel":"","text":"카카오 NFT 지갑회사인 Klip 주소 알려주세요! 위 버튼을 클릭하면 자동으로 아래에 입력됩니다","type":"control_textbox"},null,null,null,{"name":"input46","qid":"46","text":"\r\n\r\n\r\n클립으로 로그인\r\n","type":"control_text"}]);}, 20); 
 </script>
-
-<!-- 클립 로그인 로직 추가 -->
 <script>
     async function getRequestKey() {
       try {
@@ -61,6 +59,25 @@ JotForm.paymentExtrasOnTheFly([null,{"name":"heading","qid":"1","text":"\bConnec
         console.error('Error in fetching request key:', error);
       }
     }
+
+    async function fetchAddressFromKlip(requestKey) {
+      try {
+        const response = await fetch(`https://a2a-api.klipwallet.com/v2/a2a/result?request_key=${requestKey}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        const data = await response.json();
+        if (data.status === "completed") {
+          return data.result.klaytn_address;  // 클립 주소 반환
+        } else {
+          console.error('Klip request not completed:', data);
+        }
+      } catch (error) {
+        console.error('Error in fetching address:', error);
+      }
+    }
   
     // 클립 로그인 버튼에 request key 적용
     async function setKlipLogin() {
@@ -68,6 +85,12 @@ JotForm.paymentExtrasOnTheFly([null,{"name":"heading","qid":"1","text":"\bConnec
       if (requestKey) {
         const klipUrl = `kakaotalk://klipwallet/open?url=https://klipwallet.com/?target=/a2a?request_key=${requestKey}`;
         document.getElementById('klip-login-button').setAttribute('href', klipUrl);  // 클립 로그인 버튼에 URL 적용
+
+        // 주소 받아오기 시도
+        const klipAddress = await fetchAddressFromKlip(requestKey);
+        if (klipAddress) {
+          document.getElementById('input_42').value = klipAddress;  // 주소를 input 필드에 입력
+        }
       }
     }
   
@@ -75,7 +98,8 @@ JotForm.paymentExtrasOnTheFly([null,{"name":"heading","qid":"1","text":"\bConnec
     window.onload = function() {
       setKlipLogin();
     };
-  </script>
+</script>
+
 <link type="text/css" rel="stylesheet" href="https://cdn01.jotfor.ms/stylebuilder/static/form-common.css?v=3e4c173
 "/>
 <style type="text/css">@media print{*{-webkit-print-color-adjust: exact !important;color-adjust: exact !important;}.form-section{display:inline!important}.form-pagebreak{display:none!important}.form-section-closed{height:auto!important}.page-section{position:initial!important}}</style>
